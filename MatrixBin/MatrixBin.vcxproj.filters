@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Headers">
+      <UniqueIdentifier>{2a8c44f3-02db-4842-8171-cdc801e53049}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source">
+      <UniqueIdentifier>{727e77b8-3666-44e1-9e78-ac5802add593}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Matrix.cuh">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="FloatMatrix.cuh">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="BinaryMatrix.cuh">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="FloatVector.cuh">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="cuda_header.cuh">
+      <Filter>Headers</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="main.cu">
+      <Filter>Source</Filter>
+    </CudaCompile>
+    <CudaCompile Include="Matrix.cu">
+      <Filter>Source</Filter>
+    </CudaCompile>
+    <CudaCompile Include="BinaryMatrix.cu">
+      <Filter>Source</Filter>
+    </CudaCompile>
+    <CudaCompile Include="FloatMatrix.cu">
+      <Filter>Source</Filter>
+    </CudaCompile>
+    <CudaCompile Include="FloatVector.cu">
+      <Filter>Source</Filter>
+    </CudaCompile>
+    <CudaCompile Include="mul_kernels.cu">
+      <Filter>Source</Filter>
+    </CudaCompile>
+  </ItemGroup>
+</Project>
