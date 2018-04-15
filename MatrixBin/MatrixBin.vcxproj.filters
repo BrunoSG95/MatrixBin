@@ -24,6 +24,9 @@
     <ClInclude Include="cuda_header.cuh">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="Timer.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="main.cu">
@@ -44,5 +47,10 @@
     <CudaCompile Include="mul_kernels.cu">
       <Filter>Source</Filter>
     </CudaCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Timer.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

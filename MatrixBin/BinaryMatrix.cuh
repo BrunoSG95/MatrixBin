@@ -4,13 +4,16 @@
 #include "FloatMatrix.cuh"
 #include "FloatVector.cuh"
 
+#define BINARY_TYPE unsigned int
+
 class BinaryMatrix : public Matrix {
 	private:
-		unsigned int * data;
+		BINARY_TYPE * data;
 	public:
-		BinaryMatrix(long width, long height, unsigned int* data = nullptr);
+		BinaryMatrix(long width, long height, BINARY_TYPE* data = nullptr);
 		FloatMatrix* operator*(FloatMatrix& b);
 		FloatVector* operator*(FloatVector& b);
-		unsigned int * getData();
-
+		BINARY_TYPE * getData();
+		bool assertMulVector(FloatVector &b, FloatVector &c);
+		bool assertMulMatrix(FloatMatrix &b, FloatMatrix &c);
 };
