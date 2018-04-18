@@ -1,12 +1,16 @@
 #include "Test.h"
 
+#include <stdio.h>
+
 #include "BinaryMatrix.cuh"
 
 bool runAllTests() {
-	runBasicTest();
+	return runBasicTest();
 }
 
 bool runBasicTest() {
+	printf("Running basic test:\n\tbinmat: 1024*1024 fmat: 1024*1024\n");
+
 	unsigned int width = 1024;
 	unsigned int height = 1024;
 
@@ -14,7 +18,7 @@ bool runBasicTest() {
 	float* fdata = new float[width * height];
 	
 	for (unsigned long int i = 0; i < width*height; i++) {
-		bdata[i] = 0x0;
+		bdata[i / BITS_IN_BIN] = 0x0;
 		fdata[i] = 1.0f;
 	}
 

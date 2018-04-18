@@ -1,5 +1,8 @@
 #include "BinaryMatrix.cuh"
+
 #include "cuda_header.cuh"
+
+#include "stdio.h"
 
 BinaryMatrix::BinaryMatrix(long width, long height, BINARY_TYPE* data) :Matrix(width, height) {
 	this->data = data;
@@ -19,15 +22,16 @@ FloatVector BinaryMatrix::operator*(FloatVector& b) {
 
 bool BinaryMatrix::assertMulMatrix(FloatMatrix &b, FloatMatrix &c) {
 	float* newCData = new float[c.getWidth() * c.getHeight()];
-	for (unsigned long i = 0; i < c.getWidth() * c.getHeight(); i++) {
+	for (unsigned long int i = 0; i < c.getWidth() * c.getHeight(); i++) {
 		newCData[i] = 0.0f;
 	}
-	for (unsigned long i = 0; i < c.getWidth(); i++) {
-		for (unsigned long j = 0; j < c.getHeight(); j++) {
-			for (unsigned long k = 0; k < this->getWidth()/(8*sizeof(BINARY_TYPE)); k++) {
-				for (unsigned int shift = 0; shift < (8 * sizeof(BINARY_TYPE)); shift++) {
-					if ((0x1 << shift) & this->data[j * this->getWidth()/(sizeof(BINARY_TYPE) * 8) + k])
-						newCData[j * c.getWidth() + i] += b.getData()[(k * b.getWidth() + i)* 8 * sizeof(BINARY_TYPE)];
+	for (unsigned long int i = 0; i < c.getWidth(); i++) {
+		for (unsigned long int j = 0; j < c.getHeight(); j++) {
+			for (unsigned long int k = 0; k < this->getWidth()/BITS_IN_BIN; k++) {
+				BINARY_TYPE word = this->data[j * (this->getWidth() / BITS_IN_BIN) + k];
+				for (unsigned int shift = 0; shift < BITS_IN_BIN; shift++) {
+					if ((0x1 << shift) & word)
+						newCData[j * c.getWidth() + i] += b.getData()[k * b.getWidth() + (i * BITS_IN_BIN + shift) ];
 				}
 			}
 		}
@@ -35,6 +39,7 @@ bool BinaryMatrix::assertMulMatrix(FloatMatrix &b, FloatMatrix &c) {
 
 	for (unsigned long i = 0; i < c.getWidth() * c.getHeight(); i++) {
 		if (c.getData()[i] != newCData[i]) {
+			printf("Expected %f, got %f.\n", newCData[i], c.getData()[i]);
 			delete[] newCData;
 			return false;
 		}
@@ -45,6 +50,8 @@ bool BinaryMatrix::assertMulMatrix(FloatMatrix &b, FloatMatrix &c) {
 }
 
 bool BinaryMatrix::assertMulVector(FloatVector &b, FloatVector &c) {
+	printf("Assertin maxtrix*matrix on CPU\n");
+
 	float* newCData = new float[c.getHeight()];
 	for (unsigned long i = 0; i < c.getHeight(); i++) {
 		newCData[i] = 0.0f;
