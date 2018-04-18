@@ -5,16 +5,16 @@ BinaryMatrix::BinaryMatrix(long width, long height, BINARY_TYPE* data) :Matrix(w
 	this->data = data;
 }
 
-FloatMatrix* BinaryMatrix::operator*(FloatMatrix& b) {
+FloatMatrix BinaryMatrix::operator*(FloatMatrix& b) {
 	//Call CUDA
 	float* data = cuda_mul_matrix(this->getWidth(), this->getHeight(), this->getData(), b.getWidth(), b.getHeight(), b.getData());
-	return new FloatMatrix(b.getWidth(), this->getHeight(), data);
+	return FloatMatrix(b.getWidth(), this->getHeight(), data);
 }
 
-FloatVector* BinaryMatrix::operator*(FloatVector& b) {
+FloatVector BinaryMatrix::operator*(FloatVector& b) {
 	//Call CUDA
 	float* data = cuda_mul_vector(this->getWidth(), this->getHeight(), this->getData(), b.getHeight(), b.getData());
-	return new FloatVector(this->getHeight(), data);
+	return FloatVector(this->getHeight(), data);
 }
 
 bool BinaryMatrix::assertMulMatrix(FloatMatrix &b, FloatMatrix &c) {

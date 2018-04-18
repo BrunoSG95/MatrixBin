@@ -11,17 +11,15 @@ __global__ void simpleMulVector(BINARY_TYPE* aData, float* bData, float* cData, 
 
 	unsigned long int pos = blockIdx.x*blockDim.x + threadIdx.x;
 
-	unsigned int bits_in_cell = 8 * sizeof(BINARY_TYPE);
-
 	float partial_result = 0;
 
-	for (unsigned long int i = 0; i < aHeight / bits_in_cell; i++) {
+	for (unsigned long int i = 0; i < aHeight / BITS_IN_BIN; i++) {
 
-		BINARY_TYPE word = aData[pos * aWidth / bits_in_cell + i];
+		BINARY_TYPE word = aData[pos * aWidth / BITS_IN_BIN + i];
 
-		for (unsigned long int shift = 0; shift < bits_in_cell; shift++) {
+		for (unsigned long int shift = 0; shift < BITS_IN_BIN; shift++) {
 			if (word & (0x1 << shift)) {
-				partial_result += bData[i * bits_in_cell + shift];
+				partial_result += bData[i * BITS_IN_BIN + shift];
 			}
 		}
 	}
@@ -88,17 +86,15 @@ __global__ void simpleMul(BINARY_TYPE* aData, float* bData, float* cData, unsign
 	unsigned long int row = blockIdx.y*blockDim.y + threadIdx.y;
 	unsigned long int col = blockIdx.x*blockDim.x + threadIdx.x;
 
-	unsigned int bits_in_cell = 8 * sizeof(BINARY_TYPE);
-
 	float partial_result = 0;
 
-	for (unsigned long int i = 0; i < aHeight/bits_in_cell; i++) {
+	for (unsigned long int i = 0; i < aHeight/ BITS_IN_BIN; i++) {
 
-		BINARY_TYPE word = aData[row * aWidth/bits_in_cell + i];
+		BINARY_TYPE word = aData[row * aWidth/ BITS_IN_BIN + i];
 
-		for (unsigned long int shift = 0; shift < bits_in_cell; shift++) {
+		for (unsigned long int shift = 0; shift < BITS_IN_BIN; shift++) {
 			if (word & (0x1 << shift)){
-				partial_result += bData[(i * bWidth + col)*bits_in_cell];
+				partial_result += bData[(i * bWidth + col)*BITS_IN_BIN];
 			}
 		}
 	}

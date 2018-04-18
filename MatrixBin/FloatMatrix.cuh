@@ -8,5 +8,4 @@ private:
 public:
 	FloatMatrix(long width, long height, float* data = nullptr);
 	float * getData();
-
 };
