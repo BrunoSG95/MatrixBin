@@ -1,4 +1,5 @@
 #pragma once
 
 bool runAllTests();
-bool runBasicTest();
+bool runBasicTestMat();
+bool runBasicTestVec();

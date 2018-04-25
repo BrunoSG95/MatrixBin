@@ -1,6 +1,6 @@
 #include "FloatVector.cuh"
 
-FloatVector::FloatVector(long height, float* data) {
+FloatVector::FloatVector(long height, FLOAT_VEC_TYPE* data) {
 	this->height = height;
 	this->data = data;
 }
@@ -9,6 +9,6 @@ long FloatVector::getHeight() {
 	return height;
 }
 
-float * FloatVector::getData() {
+FLOAT_VEC_TYPE * FloatVector::getData() {
 	return data;
 }

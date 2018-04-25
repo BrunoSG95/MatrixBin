@@ -4,10 +4,10 @@
 
 int main() {
 	if (runAllTests()) {
-		printf("Success");
+		printf("\nSuccess\n");
 	}
 	else {
-		printf("Failure");
+		printf("\nFailure\n");
 	}
 	getchar();
 	return 0;
