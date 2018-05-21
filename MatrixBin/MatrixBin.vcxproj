@@ -99,6 +99,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <CudaCompile Include="FloatVector.cu" />
     <CudaCompile Include="main.cu" />
     <CudaCompile Include="Matrix.cu" />
+    <CudaCompile Include="mul_cublas.cu" />
     <CudaCompile Include="mul_kernels.cu" />
   </ItemGroup>
   <ItemGroup>

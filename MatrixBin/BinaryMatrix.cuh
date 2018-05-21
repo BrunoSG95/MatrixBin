@@ -17,4 +17,6 @@ class BinaryMatrix : public Matrix {
 		BINARY_TYPE * getData();
 		bool assertMulVector(FloatVector &b, FloatVector &c);
 		bool assertMulMatrix(FloatMatrix &b, FloatMatrix &c);
+		FloatMatrix* toFloatMatrix();
+		~BinaryMatrix();
 };

@@ -107,6 +107,52 @@ __global__ void simpleMul(BINARY_TYPE* aData, FLOAT_MAT_TYPE* bData, FLOAT_MAT_T
 
 }
 
+__global__ void optimizedMul(BINARY_TYPE* aData, FLOAT_MAT_TYPE* bData, FLOAT_MAT_TYPE* cData, unsigned long int aWidth, unsigned long int aHeight, unsigned long int bWidth) {
+	
+	// Declare tiles (A&B)
+	extern __shared__ BINARY_TYPE tileA[];
+	FLOAT_MAT_TYPE* tileB = (FLOAT_MAT_TYPE*)&tileA[(blockDim.x + 1) * blockDim.y]; // +1 for padding
+
+	BINARY_TYPE masks[] = { 0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x100,0x200,0x400,0x800,0x1000,0x2000,0x4000,0x8000,0x10000,0x20000,0x40000,0x80000,0x100000,0x200000,0x400000,0x800000,0x1000000,0x2000000,0x4000000,0x8000000,0x10000000,0x20000000,0x40000000,0x80000000,0x100000000,0x200000000,0x400000000,0x800000000,0x1000000000,0x2000000000,0x4000000000,0x8000000000,0x10000000000,0x20000000000,0x40000000000,0x80000000000,0x100000000000,0x200000000000,0x400000000000,0x800000000000,0x1000000000000,0x2000000000000,0x4000000000000,0x8000000000000,0x10000000000000,0x20000000000000,0x40000000000000,0x80000000000000,0x100000000000000,0x200000000000000,0x400000000000000,0x800000000000000,0x1000000000000000,0x2000000000000000,0x4000000000000000,0x8000000000000000 };
+
+	float res = 0;
+
+	// Get tile indices
+	unsigned int tile_row, tile_column;
+	tile_row = threadIdx.y;
+	tile_column = threadIdx.x;
+
+	// Get A indices
+	unsigned int read_a_row, read_a_column;
+	read_a_row = blockIdx.y * blockDim.y + threadIdx.y;
+
+	// Get B indices
+	unsigned int read_b_column = threadIdx.x + blockIdx.x * blockDim.x;
+
+	for (unsigned int i = 0; i < aWidth / (blockDim.x * BITS_IN_BIN); i++) {
+
+		//Load A in tile
+		read_a_column = blockDim.x * i + threadIdx.x;
+		tileA[tile_row * (blockDim.y + 1) + tile_column] = aData[read_a_row * aWidth/BITS_IN_BIN + read_a_column];
+
+		//Load B in tile
+		unsigned int read_b_row = blockDim.y * i + threadIdx.y;
+		tileB[tile_row * (blockDim.x + 1) + tile_column] = bData[read_b_row * bWidth + read_b_column];
+
+		//Calculate multiplication
+		__syncthreads();
+		for (unsigned int j = 0; j < blockDim.x / BITS_IN_BIN; j++) {
+			for (unsigned int shift = 0; shift < BITS_IN_BIN; shift++) {
+				if (tileA[threadIdx.y * (blockDim.y + 1) + j] & masks[shift])
+					res += tileB[j * (blockDim.x + 1) + shift + threadIdx.x];
+			}
+		}
+		__syncthreads();
+	}
+
+	cData[read_a_row * bWidth + read_b_column] = res;
+}
+
 FLOAT_MAT_TYPE* cuda_mul_matrix(long aWidth, long aHeight, BINARY_TYPE* aData, long bWidth, long bHeight, FLOAT_MAT_TYPE* bData) {
 	
 	// Initialize result
@@ -141,7 +187,7 @@ FLOAT_MAT_TYPE* cuda_mul_matrix(long aWidth, long aHeight, BINARY_TYPE* aData, l
 	dim3 blockSize(BLOCK_THREADS_MATRIX, BLOCK_THREADS_MATRIX);
 
 	exec.start();
-	simpleMul<<<gridSize, blockSize>>>(A_dev, B_dev, C_dev, aWidth, aHeight, bWidth);
+	optimizedMul<<<gridSize, blockSize, (BLOCK_THREADS_MATRIX+1)*BLOCK_THREADS_MATRIX*(sizeof(BINARY_TYPE)+sizeof(FLOAT_MAT_TYPE))>>>(A_dev, B_dev, C_dev, aWidth, aHeight, bWidth);
 	cudaDeviceSynchronize();
 
 	exec.stop("Execution: ");

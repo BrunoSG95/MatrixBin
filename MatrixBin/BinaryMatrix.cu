@@ -40,7 +40,7 @@ bool BinaryMatrix::assertMulMatrix(FloatMatrix &b, FloatMatrix &c) {
 
 	for (unsigned long i = 0; i < c.getWidth() * c.getHeight(); i++) {
 		if (c.getData()[i] != newCData[i]) {
-			printf("Expected %f, got %f.\n", newCData[i], c.getData()[i]);
+			printf("Expected %f at index [%d, %d], got %f.\n", newCData[i], i / c.getWidth(), i % c.getWidth(), c.getData()[i]);
 			delete[] newCData;
 			return false;
 		}
@@ -70,7 +70,7 @@ bool BinaryMatrix::assertMulVector(FloatVector &b, FloatVector &c) {
 
 	for (unsigned long i = 0; i < c.getHeight(); i++) {
 		if (c.getData()[i] != newCData[i]) {
-			printf("Expected %f, got %f.\n", newCData[i], c.getData()[i]);
+			printf("\tExpected %f at index [%d], got %f.\n", newCData[i], i, c.getData()[i]);
 			delete[] newCData;
 			return false;
 		}
@@ -82,4 +82,19 @@ bool BinaryMatrix::assertMulVector(FloatVector &b, FloatVector &c) {
 
 BINARY_TYPE * BinaryMatrix::getData() {
 	return data;
+}
+
+FloatMatrix* BinaryMatrix::toFloatMatrix() {
+	FLOAT_MAT_TYPE* data = new FLOAT_MAT_TYPE[this->getWidth() * this->getHeight()];
+	for (unsigned long int i = 0; i < this->getWidth() * this->getHeight(); i++) {
+		data[i] = 0.0f;
+		if (this->data[i / BITS_IN_BIN] & (0x1 << i%BITS_IN_BIN))
+			data[i] = 1.0f;
+	}
+	return new FloatMatrix(this->getWidth(), this->getHeight(), data);
+}
+
+BinaryMatrix::~BinaryMatrix() {
+	if (this->data)
+		delete this->data;
 }

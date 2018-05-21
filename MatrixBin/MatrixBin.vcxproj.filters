@@ -50,6 +50,9 @@
     <CudaCompile Include="mul_kernels.cu">
       <Filter>Source</Filter>
     </CudaCompile>
+    <CudaCompile Include="mul_cublas.cu">
+      <Filter>Source</Filter>
+    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Timer.cpp">
