@@ -6,24 +6,34 @@
 
 #define BLOCK_THREADS_MATRIX 32
 #define BLOCK_THREADS_VECTOR 32
+#define SHARED_LIMIT 512 // Limit (floats) shared memory size to mantain high occupancy
 
-__global__ void simpleMulVector(BINARY_TYPE* aData, FLOAT_VEC_TYPE* bData, FLOAT_VEC_TYPE* cData, unsigned long int aWidth, unsigned long int aHeight) {
-	
+__global__ void sharedMulVector(BINARY_TYPE* aData, FLOAT_VEC_TYPE* bData, FLOAT_VEC_TYPE* cData, unsigned long int aWidth, unsigned long int aHeight, unsigned int sharedSize) {
 	BINARY_TYPE masks[] = { 0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x100,0x200,0x400,0x800,0x1000,0x2000,0x4000,0x8000,0x10000,0x20000,0x40000,0x80000,0x100000,0x200000,0x400000,0x800000,0x1000000,0x2000000,0x4000000,0x8000000,0x10000000,0x20000000,0x40000000,0x80000000,0x100000000,0x200000000,0x400000000,0x800000000,0x1000000000,0x2000000000,0x4000000000,0x8000000000,0x10000000000,0x20000000000,0x40000000000,0x80000000000,0x100000000000,0x200000000000,0x400000000000,0x800000000000,0x1000000000000,0x2000000000000,0x4000000000000,0x8000000000000,0x10000000000000,0x20000000000000,0x40000000000000,0x80000000000000,0x100000000000000,0x200000000000000,0x400000000000000,0x800000000000000,0x1000000000000000,0x2000000000000000,0x4000000000000000,0x8000000000000000 };
 	
+	extern __shared__ float shared[];
+	FLOAT_VEC_TYPE* vector = (FLOAT_VEC_TYPE*) shared;
+
 	unsigned long int pos = blockIdx.x*blockDim.x + threadIdx.x;
 
 	FLOAT_VEC_TYPE partial_result = 0;
 
-	for (unsigned long int k = 0; k < aWidth / unsigned int(BITS_IN_BIN); k++) {
-
-		BINARY_TYPE word = aData[pos * (aWidth / unsigned int(BITS_IN_BIN)) + k];
-
-		for (unsigned long int shift = 0; shift < BITS_IN_BIN; shift++) {
-			if (word & masks[shift]) {
-				partial_result += bData[k * unsigned int(BITS_IN_BIN) + shift];
+	for (unsigned long int step = 0; step < aWidth / sharedSize; step++) {
+		for (unsigned int i = threadIdx.x; i < sharedSize; i += blockDim.x) {
+			vector[i] = bData[step * sharedSize + i];
+		}
+		__syncthreads();
+		for (unsigned long int inner = 0; inner < sharedSize / unsigned int(BITS_IN_BIN); inner++) {
+			unsigned long int offset = step * (sharedSize/ unsigned int(BITS_IN_BIN)) + inner;
+			BINARY_TYPE word = aData[pos * (aWidth / unsigned int(BITS_IN_BIN)) + offset];
+			# pragma unroll
+			for (unsigned long int shift = 0; shift < BITS_IN_BIN; shift++) {
+				if (word & masks[shift]) {
+					partial_result += vector[inner * unsigned int(BITS_IN_BIN) + shift];
+				}
 			}
 		}
+		__syncthreads();
 	}
 
 	cData[pos] = partial_result;
@@ -61,9 +71,12 @@ FLOAT_VEC_TYPE* cuda_mul_vector(long aWidth, long aHeight, BINARY_TYPE* aData, l
 	unsigned long int gridx = aHeight / BLOCK_THREADS_VECTOR;
 	dim3 gridSize(gridx);
 	dim3 blockSize(BLOCK_THREADS_VECTOR);
-
+	unsigned int sharedSize = aWidth;
+	if (sharedSize > unsigned int (SHARED_LIMIT))
+		sharedSize = unsigned int(SHARED_LIMIT);
+	unsigned int sharedSizeInBytes = sharedSize * sizeof(FLOAT_VEC_TYPE);
 	exec.start();
-	simpleMulVector<<<gridSize, blockSize>>>(A_dev, B_dev, C_dev, aWidth, aHeight);
+	sharedMulVector<<<gridSize, blockSize, sharedSizeInBytes >>>(A_dev, B_dev, C_dev, aWidth, aHeight, sharedSize);
 	cudaDeviceSynchronize();
 
 	exec.stop("Execution: ");
@@ -145,6 +158,7 @@ __global__ void optimizedMul(BINARY_TYPE* aData, FLOAT_MAT_TYPE* bData, FLOAT_MA
 		__syncthreads();
 
 		for (unsigned int j = 0; j < blockDim.x / unsigned int (BITS_IN_BIN); j++) {
+			#pragma unroll
 			for (unsigned int shift = 0; shift < unsigned int(BITS_IN_BIN); shift++) {
 				if (tileA[threadIdx.y * (blockDim.y + 1) / unsigned int(BITS_IN_BIN) + j] & masks[shift])
 					res += tileB[(j * unsigned int(BITS_IN_BIN) + shift)  * (blockDim.x + 1) + threadIdx.x];
