@@ -157,7 +157,7 @@ __global__ void optimizedMul(BINARY_TYPE* aData, FLOAT_MAT_TYPE* bData, FLOAT_MA
 		__syncthreads();
 
 		for (unsigned int j = 0; j < blockDim.x / unsigned int (BITS_IN_BIN); j++) {
-			//#pragma unroll
+			#pragma unroll
 			BINARY_TYPE word = tileA[(tile_column * (blockDim.y + 1)) / unsigned int(BITS_IN_BIN) + j];
 			for (unsigned int shift = 0; shift < unsigned int(BITS_IN_BIN); shift++) {
 				if (word & masks[shift])
@@ -204,7 +204,6 @@ FLOAT_MAT_TYPE* cuda_mul_matrix(long aWidth, long aHeight, BINARY_TYPE* aData, l
 	dim3 blockSize(BLOCK_THREADS_MATRIX, BLOCK_THREADS_MATRIX);
 	unsigned int sharedSize = (BLOCK_THREADS_MATRIX + 1)*BLOCK_THREADS_MATRIX* sizeof(FLOAT_MAT_TYPE) + (((BLOCK_THREADS_MATRIX + 1)*BLOCK_THREADS_MATRIX*sizeof(BINARY_TYPE)) / unsigned int (BITS_IN_BIN));
 	exec.start();
-	//simpleMul<<<gridSize, blockSize>>>(A_dev, B_dev, C_dev, aWidth, aHeight, bWidth);
 	optimizedMul<<<gridSize, blockSize, sharedSize >>>(A_dev, B_dev, C_dev, aWidth, aHeight, bWidth);
 	cudaDeviceSynchronize();
 
