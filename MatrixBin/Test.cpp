@@ -6,6 +6,7 @@ Test::Test() {
 	a = nullptr;
 	b = nullptr;
 	v = nullptr;
+	this->assert = false;
 }
 
 void Test::loadA(unsigned long int width, unsigned long int height) {
@@ -47,7 +48,10 @@ void Test::loadV(unsigned long int height) {
 bool Test::testMat() {
 	if (a->getWidth() == b->getHeight()) {
 		FloatMatrix res = *a * *b;
-		return a->assertMulMatrix(*b, res);
+		if (assert)
+			return a->assertMulMatrix(*b, res);
+		else
+			return true;
 	}
 	else {
 		printf("Incompatible sizes");
@@ -55,9 +59,12 @@ bool Test::testMat() {
 }
 
 bool Test::testVec() {
-	if (a->getWidth() == v->getHeight()) {
+	if (a && v && a->getWidth() == v->getHeight()) {
 		FloatVector res = *a * *v;
-		return a->assertMulVector(*v, res);
+		if (assert)
+			return a->assertMulVector(*v, res);
+		else
+			return true;
 	}
 	else {
 		printf("Incompatible sizes");
@@ -69,7 +76,10 @@ bool Test::testCUDA() {
 		FloatMatrix* conv = this->a->toFloatMatrix();
 		FloatMatrix result = conv->operator*(*b);
 		delete conv;
-		return a->assertMulMatrix(*b, result);
+		if (assert)
+			return a->assertMulMatrix(*b, result);
+		else
+			return true;
 	}
 	else {
 		printf("Incompatible sizes");

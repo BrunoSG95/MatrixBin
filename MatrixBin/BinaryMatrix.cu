@@ -25,7 +25,7 @@ bool BinaryMatrix::assertMulMatrix(FloatMatrix &b, FloatMatrix &c) {
 	for (unsigned long int i = 0; i < c.getWidth() * c.getHeight(); i++) {
 		newCData[i] = 0.0f;
 	}
-	/*for (unsigned long int i = 0; i < c.getHeight(); i++) {
+	for (unsigned long int i = 0; i < c.getHeight(); i++) {
 		for (unsigned long int j = 0; j < c.getWidth(); j++) {
 			for (unsigned long int k = 0; k < this->getWidth()/unsigned int (BITS_IN_BIN); k++) {
 				BINARY_TYPE word = this->data[i * (this->getWidth() / BITS_IN_BIN) + k];
@@ -44,7 +44,7 @@ bool BinaryMatrix::assertMulMatrix(FloatMatrix &b, FloatMatrix &c) {
 			delete[] newCData;
 			return false;
 		}
-	}*/
+	}
 
 	delete [] newCData;
 	return true;

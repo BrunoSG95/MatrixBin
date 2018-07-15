@@ -147,8 +147,7 @@ __global__ void optimizedMul(BINARY_TYPE* aData, FLOAT_MAT_TYPE* bData, FLOAT_MA
 
 		//Load A in tile
 		read_a_column = blockDim.x * i + threadIdx.x;
-		if ( (tile_row * (blockDim.y + 1) + tile_column) % unsigned int(BITS_IN_BIN) == 0)
-			tileA[ (tile_row * (blockDim.y + 1) + tile_column) / unsigned int(BITS_IN_BIN)] = aData[read_a_row * aWidth / unsigned int(BITS_IN_BIN) + read_a_column];
+		tileA[(tile_row * (blockDim.y + 1) + tile_column) / unsigned int(BITS_IN_BIN)] = aData[read_a_row * aWidth / unsigned int(BITS_IN_BIN) + read_a_column];
 
 		//Load B in tile
 		unsigned int read_b_row = blockDim.y * i + threadIdx.y;
@@ -158,10 +157,11 @@ __global__ void optimizedMul(BINARY_TYPE* aData, FLOAT_MAT_TYPE* bData, FLOAT_MA
 		__syncthreads();
 
 		for (unsigned int j = 0; j < blockDim.x / unsigned int (BITS_IN_BIN); j++) {
-			#pragma unroll
+			//#pragma unroll
+			BINARY_TYPE word = tileA[(tile_column * (blockDim.y + 1)) / unsigned int(BITS_IN_BIN) + j];
 			for (unsigned int shift = 0; shift < unsigned int(BITS_IN_BIN); shift++) {
-				if (tileA[threadIdx.y * (blockDim.y + 1) / unsigned int(BITS_IN_BIN) + j] & masks[shift])
-					res += tileB[(j * unsigned int(BITS_IN_BIN) + shift)  * (blockDim.x + 1) + threadIdx.x];
+				if (word & masks[shift])
+					res +=  tileB[(j * unsigned int(BITS_IN_BIN) + shift)  * (blockDim.x + 1) + threadIdx.x];
 			}
 		}
 		__syncthreads();

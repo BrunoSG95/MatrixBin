@@ -16,5 +16,6 @@ class Test {
 		bool testMat(); 
 		bool testVec();
 		bool testCUDA();
+		bool assert;
 		~Test();
 };
